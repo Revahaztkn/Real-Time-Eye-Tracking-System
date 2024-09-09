@@ -1,2 +1,95 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Gerekli kütüphaneleri dahil ediyoruz.
+import cv2
+import dlib
+import numpy as np
+from scipy.spatial import distance as dist
+# Göz açıklık oranını kullanarak gözün ne kadar açık olduğunu buluyoruz
+def calculate_ear(eye):
+    A = dist.euclidean(eye[1], eye[5])
+    B = dist.euclidean(eye[2], eye[4])
+    C = dist.euclidean(eye[0], eye[3])
+    ear = (A + B) / (2.0 * C)
+    return ear
+# Yüz ve göz algılayıcıyı tanımlıyoruz.
+detector = dlib.get_frontal_face_detector()
+
+# Kullanılan modeli yüklüyoruz. Bu dosyayı Google'dan aratıp bulabilirsiniz
+predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+
+# Kameradan görüntü alıyoruz
+cap = cv2.VideoCapture(0)
+
+
+
+# Göz açıklığını hesapladıktan sonra bu değerden küçükse göz kapalı ya da kısık diyoruz
+EYE_AR_THRESH = 0.3
+
+# 48 frame üst üste göz kapalı kalırsa yorgunluk belirtisi
+EYE_AR_CONSEC_FRAMES = 48  
+
+# Gözün kaç frame'dir kapalı olduğunu buuyoruz bunula
+COUNTER = 0
+
+while True:
+    ret, frame = cap.read()
+    
+    # Görüntüyü gri formata çevirdik
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Resmi modele veriyoruz
+    faces = detector(gray)
+    
+    # Her bir yüz için dönüyor bu döngü
+    for face in faces:
+        
+        # Yüzün olduğu koordinatları bulup yüzü kare içine alıyoruz
+        x1,y1=face.left(),face.top()
+        x2,y2=face.right(),face.bottom()
+        cv2.rectangle(frame ,(x1,y1),(x2,y2),(102,0,153),3)
+        
+        # Buraada yüzdeki belli yerlerin koordinatlarını alıyoruz
+        landmarks = predictor(gray, face)
+        
+        # Sol gözün olduğu kısımların koordinatlarını array şeklinde alıyoruz.
+        left_eye = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in range(36, 42)])
+        
+        # Sağ gözün olduğu kısımların koordinatlarını array şeklinde alıyoruz.
+        right_eye = np.array([(landmarks.part(i).x, landmarks.part(i).y) for i in range(42, 48)])
+        
+        # Sol gözdeki önemli kısımları gösteriyoruz
+        for eye in  left_eye:
+            cv2.circle(frame, eye, 2, (0, 255, 0), -1)
+            
+        # Sağ gözdeki önemli kısımları gösteriyoruz
+        for eye in  right_eye:
+    
+            cv2.circle(frame, eye, 2, (0, 255, 0), -1)
+        
+        # Sol ve sağ göz için göz açıklık oranını hesaplıyoruz
+        leftEAR = calculate_ear(left_eye)
+        rightEAR = calculate_ear(right_eye)
+        
+        # bu iki değerin ortalamsını alıyoruz.
+        ear = (leftEAR + rightEAR) / 2.0
+        
+        # Eğer göz kapalı ya da kısıksa aşağıda if bloğu çalışır
+        if ear < EYE_AR_THRESH:
+            COUNTER += 1
+             # Eğer 48 frame üst üste göz kapalı ise ekran yorgunluk algılandı yazıyoruz. 
+            if COUNTER >= EYE_AR_CONSEC_FRAMES:
+                
+                cv2.putText(frame, "YORGUNLUK ALGILANDI!", (10, 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        else:
+            # Göz açık bulunduktan sonra bu değeri sıfırlıyoruz. 
+            # Böylece aradaki göz kırpmaları biriktrip yorgunluk algılandı denmez
+            COUNTER = 0
+        
+    cv2.imshow("Frame", frame)
+    
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
