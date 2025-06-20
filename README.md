@@ -1,3 +1,4 @@
+![](https://ars.els-cdn.com/content/image/3-s2.0-B9780128130926000022-f01-02-9780128130926.jpg)
 # Göz İzleyici (Eye Tracker)
 
 **Göz İzleyici** projesi, Python ve OpenCV kullanarak göz hareketlerini gerçek zamanlı izleyen bir sistem sunar. Bu sistem, kullanıcıların ekrandaki öğelere baktıklarında göz hareketlerini izler ve kaydeder. Gelişmiş kullanıcı etkileşimi sağlamak amacıyla, bu yazılım göz izleme ve etkileşimli projelerde kullanılabilir.
