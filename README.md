@@ -1,7 +1,3 @@
-Elbette! İşte **README** dosyanı iyileştirebilecek bir şablon. Bu şablonu, göz izleyici projenin açıklamaları ve kullanım adımlarını daha açık ve anlaşılır hale getirecek şekilde özelleştirdim:
-
----
-
 # Göz İzleyici (Eye Tracker)
 
 **Göz İzleyici** projesi, Python ve OpenCV kullanarak göz hareketlerini gerçek zamanlı izleyen bir sistem sunar. Bu sistem, kullanıcıların ekrandaki öğelere baktıklarında göz hareketlerini izler ve kaydeder. Gelişmiş kullanıcı etkileşimi sağlamak amacıyla, bu yazılım göz izleme ve etkileşimli projelerde kullanılabilir.
